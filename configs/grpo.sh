@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# GRPO baseline: Qwen3.5-9B full-FT on tooluse, single-GPU.
+# Mirrors upstream/run_local_grpo.sh, swapping in our model and pinning a seed.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT/upstream"
+
+export PYTHONPATH="$ROOT/upstream:${PYTHONPATH:-}"
+export USER="${USER:-$(whoami)}"
+export N_GPUS_PER_NODE=1
+
+CONFIG_NAME="baseline_grpo"
+DATA_PATH="datasets/mind2web"
+MODEL_PATH="${MODEL_PATH:-Qwen/Qwen3.5-9B}"
+SEED="${SEED:-42}"
+
+TRAIN_BATCH_SIZE=32
+ROLLOUT_BATCH_SIZE=8
+MINI_BATCH_SIZE=8
+LR=1e-5
+
+EXP_NAME="GRPO-q35-9b-mind2web-seed${SEED}"
+
+ARGS="data.train_batch_size=$TRAIN_BATCH_SIZE \
+trainer.group_name=SDPOvsGRPO \
+trainer.experiment_name=$EXP_NAME \
+actor_rollout_ref.actor.optim.lr_warmup_steps=10 \
+actor_rollout_ref.rollout.n=$ROLLOUT_BATCH_SIZE \
+actor_rollout_ref.actor.optim.lr=$LR \
+actor_rollout_ref.actor.ppo_mini_batch_size=$MINI_BATCH_SIZE \
+actor_rollout_ref.model.path=$MODEL_PATH \
+algorithm.rollout_correction.rollout_is=token \
+actor_rollout_ref.rollout.val_kwargs.n=16 \
+trainer.seed=$SEED"
+
+echo "----------------------------------------------------------------"
+echo "[GRPO] $EXP_NAME"
+echo "  model:   $MODEL_PATH"
+echo "  data:    $DATA_PATH"
+echo "  seed:    $SEED"
+echo "  GPUs:    $N_GPUS_PER_NODE"
+echo "----------------------------------------------------------------"
+
+bash "$ROOT/upstream/training/verl_training.sh" \
+  "$EXP_NAME" "$CONFIG_NAME" "$DATA_PATH" $ARGS

@@ -1,0 +1,21 @@
+# local artifacts
+results/*.json
+results/*.png
+results/checkpoints/
+*.log
+*.tmp
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# secrets
+secrets.env
+.env
