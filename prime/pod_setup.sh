@@ -8,6 +8,15 @@ WORKDIR="${WORKDIR:-/workspace/sdpo-vs-grpo}"
 WANDB_API_KEY="${WANDB_API_KEY:-}"
 HF_TOKEN="${HF_TOKEN:-}"
 
+# ---- 0. python/pip resolution ----
+# Datacrunch/runpod images often ship python3 only — alias for our tooling.
+if ! command -v python >/dev/null 2>&1; then
+  ln -sf "$(command -v python3)" /usr/local/bin/python
+fi
+python3 -m ensurepip --upgrade 2>/dev/null || true
+PIP="python3 -m pip"
+$PIP --version
+
 # ---- 1. clone ----
 if [[ ! -d "$WORKDIR" ]]; then
   git clone --recurse-submodules "$REPO_URL" "$WORKDIR"
@@ -16,26 +25,27 @@ cd "$WORKDIR"
 git submodule update --init --recursive
 
 # ---- 2. install ----
-# B200 (Blackwell, sm_100) needs cu128 + torch 2.7. See upstream/INSTALL.md.
-python -m pip install --upgrade pip
-pip install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+# H200 (Hopper, sm_90) — torch 2.5+cu124 is well tested with verl/lasgroup-SDPO.
+# (The Blackwell cu128 path was for B200; H200 uses Hopper toolchain.)
+$PIP install --upgrade pip
+$PIP install torch==2.5.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
 cd upstream
-pip install -r requirements.txt
-pip install -e .
-pip install flash-attn --no-build-isolation || echo "[warn] flash-attn install failed; continuing"
-pip install word2number "latex2sympy2" "math-verify[antlr4_9_3]==0.8.0"
-pip install --upgrade wandb
+$PIP install -r requirements.txt
+$PIP install -e . || echo "[warn] verl editable install had issues"
+$PIP install flash-attn --no-build-isolation || echo "[warn] flash-attn install failed; continuing without it"
+$PIP install word2number "latex2sympy2" "math-verify[antlr4_9_3]==0.8.0"
+$PIP install --upgrade wandb
 
-# Blackwell-tested vLLM
-pip install "vllm>=0.12.0"
+# vLLM (Hopper supports any modern release)
+$PIP install "vllm==0.8.4"
 
 # ---- 3. wandb auth ----
 if [[ -n "$WANDB_API_KEY" ]]; then
   wandb login "$WANDB_API_KEY"
 fi
 if [[ -n "$HF_TOKEN" ]]; then
-  huggingface-cli login --token "$HF_TOKEN" || python -c "from huggingface_hub import login; login('$HF_TOKEN')"
+  huggingface-cli login --token "$HF_TOKEN" || python3 -c "from huggingface_hub import login; login('$HF_TOKEN')"
 fi
 
 # ---- 4. data ----
