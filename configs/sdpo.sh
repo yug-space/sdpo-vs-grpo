@@ -13,7 +13,10 @@ export N_GPUS_PER_NODE=1
 
 CONFIG_NAME="sdpo"
 DATA_PATH="datasets/mind2web"
-MODEL_PATH="${MODEL_PATH:-Qwen/Qwen3.5-9B}"
+# Qwen3.5-9B has model_type=qwen3_5 which only ships in transformers >=5.0,
+# but verl pins to 4.x for AutoModelForVision2Seq. Falling back to Qwen3-8B
+# (lasgroup/SDPO's own default in their experiments).
+MODEL_PATH="${MODEL_PATH:-Qwen/Qwen3-8B}"
 SEED="${SEED:-42}"
 
 TRAIN_BATCH_SIZE=32
@@ -25,7 +28,7 @@ DONTS_REPROMPT_ON_SELF_SUCCESS=True
 ALPHA=0.5            # 0=fwd KL, 0.5=Jensen-Shannon, 1=rev KL
 DISTILL_TOPK=100
 
-EXP_NAME="SDPO-q35-9b-mind2web-alpha${ALPHA}-seed${SEED}"
+EXP_NAME="SDPO-qwen3-8b-mind2web-alpha${ALPHA}-seed${SEED}"
 
 # Memory tricks for single H200 141GB full-FT of 9B + EMA teacher
 MAX_STEPS="${MAX_STEPS:-100}"
