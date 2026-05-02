@@ -14,10 +14,11 @@ export N_GPUS_PER_NODE=1
 
 CONFIG_NAME="baseline_grpo"
 DATA_PATH="datasets/mind2web"
-# Qwen3.5-9B has model_type=qwen3_5 which only ships in transformers >=5.0,
-# but verl pins to 4.x for AutoModelForVision2Seq. Falling back to Qwen3-8B
-# (lasgroup/SDPO's own default in their experiments).
-MODEL_PATH="${MODEL_PATH:-Qwen/Qwen3-8B}"
+# Qwen3.5-9B has model_type=qwen3_5 (transformers >=5.0, breaks verl).
+# Qwen3-8B fits compute-wise but Adam fp32 state (~65GB) + model + grads + vLLM
+# OOMs on a single H200 141GB at optimizer step. Dropping to Qwen3-4B which
+# halves the optimizer memory and runs cleanly on this hardware.
+MODEL_PATH="${MODEL_PATH:-Qwen/Qwen3-4B}"
 SEED="${SEED:-42}"
 
 TRAIN_BATCH_SIZE=32
@@ -25,7 +26,7 @@ ROLLOUT_BATCH_SIZE=8
 MINI_BATCH_SIZE=8
 LR=1e-5
 
-EXP_NAME="GRPO-qwen3-8b-mind2web-seed${SEED}"
+EXP_NAME="GRPO-qwen3-4b-mind2web-seed${SEED}"
 
 # Memory tricks for single H200 141GB full-FT of 9B:
 # - param_offload + optimizer_offload: AdamW fp32 states live in CPU RAM
