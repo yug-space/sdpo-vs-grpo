@@ -74,6 +74,19 @@ $PIP install "numpy<2.0.0" 2>&1 | tail -3
 # But transformers>=5.0 removed AutoModelForVision2Seq which verl imports.
 # Pin to last 4.x release that satisfies both.
 $PIP install "transformers==4.57.6" 2>&1 | tail -3
+
+# Build flash-attn against the FINAL torch (2.9+cu128). No prebuilt wheel
+# exists for this combination on cp310, so force source build (~25 min).
+if ! python3 -c "import flash_attn" 2>/dev/null; then
+  echo "[setup] compiling flash-attn from source against current torch..."
+  export CUDA_HOME=$(ls -d /usr/local/cuda* 2>/dev/null | head -1)
+  export PATH=$CUDA_HOME/bin:$PATH
+  export MAX_JOBS=8
+  export FLASH_ATTENTION_FORCE_BUILD=TRUE
+  $PIP install --force-reinstall --no-deps --no-cache-dir --no-build-isolation \
+    --no-binary flash-attn flash-attn==2.8.3 2>&1 | tail -5
+  python3 -c "import flash_attn; print('flash_attn OK:', flash_attn.__version__)"
+fi
 fi  # end SKIP_INSTALL guard
 
 # ---- 3. wandb auth ----
