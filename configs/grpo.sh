@@ -9,8 +9,8 @@ cd "$ROOT/upstream"
 export PYTHONPATH="$ROOT/upstream:${PYTHONPATH:-}"
 export USER="${USER:-$(whoami)}"
 export N_GPUS_PER_NODE=1
-# Reduce CUDA memory fragmentation when training near GPU capacity
-export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
+# Note: expandable_segments is incompatible with vLLM's CUDA memory pool,
+# don't enable it. Memory headroom comes from gpu_memory_utilization=0.30.
 
 CONFIG_NAME="baseline_grpo"
 DATA_PATH="datasets/mind2web"
