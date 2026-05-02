@@ -59,6 +59,10 @@ actor_rollout_ref.rollout.free_cache_engine=True \
 actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1 \
 actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=1 \
 trainer.val_before_train=False \
+trainer.save_freq=10 \
+trainer.resume_mode=auto \
+trainer.default_local_dir=/workspace/checkpoints/$EXP_NAME \
+trainer.max_actor_ckpt_to_keep=2 \
 algorithm.rollout_correction.rollout_is=token \
 actor_rollout_ref.rollout.val_kwargs.n=16"
 
