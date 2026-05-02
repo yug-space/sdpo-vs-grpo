@@ -30,7 +30,11 @@ EXP_NAME="SDPO-q35-9b-mind2web-alpha${ALPHA}-seed${SEED}"
 # Memory tricks for single H200 141GB full-FT of 9B + EMA teacher
 MAX_STEPS="${MAX_STEPS:-100}"
 
+SDPO_DIR="${SDPO_DIR:-$ROOT/upstream}"
+
 ARGS="data.train_batch_size=$TRAIN_BATCH_SIZE \
+vars.dir=$SDPO_DIR \
+trainer.n_gpus_per_node=$N_GPUS_PER_NODE \
 trainer.group_name=SDPOvsGRPO \
 trainer.experiment_name=$EXP_NAME \
 trainer.total_training_steps=$MAX_STEPS \
@@ -41,6 +45,7 @@ actor_rollout_ref.actor.ppo_mini_batch_size=32 \
 actor_rollout_ref.actor.fsdp_config.param_offload=True \
 actor_rollout_ref.actor.fsdp_config.optimizer_offload=True \
 actor_rollout_ref.actor.use_dynamic_bsz=True \
+actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
 actor_rollout_ref.actor.self_distillation.distillation_topk=$DISTILL_TOPK \
 actor_rollout_ref.actor.self_distillation.dont_reprompt_on_self_success=${DONTS_REPROMPT_ON_SELF_SUCCESS} \
 actor_rollout_ref.actor.self_distillation.alpha=$ALPHA \

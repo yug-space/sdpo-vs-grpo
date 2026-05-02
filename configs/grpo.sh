@@ -27,7 +27,11 @@ EXP_NAME="GRPO-q35-9b-mind2web-seed${SEED}"
 # - dynamic_bsz: verl auto-tunes micro-batch from a token budget
 MAX_STEPS="${MAX_STEPS:-100}"
 
+SDPO_DIR="${SDPO_DIR:-$ROOT/upstream}"
+
 ARGS="data.train_batch_size=$TRAIN_BATCH_SIZE \
+vars.dir=$SDPO_DIR \
+trainer.n_gpus_per_node=$N_GPUS_PER_NODE \
 trainer.group_name=SDPOvsGRPO \
 trainer.experiment_name=$EXP_NAME \
 trainer.total_training_steps=$MAX_STEPS \
@@ -39,6 +43,7 @@ actor_rollout_ref.actor.fsdp_config.param_offload=True \
 actor_rollout_ref.actor.fsdp_config.optimizer_offload=True \
 actor_rollout_ref.actor.use_dynamic_bsz=True \
 actor_rollout_ref.model.path=$MODEL_PATH \
+actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
 algorithm.rollout_correction.rollout_is=token \
 actor_rollout_ref.rollout.val_kwargs.n=16"
 
