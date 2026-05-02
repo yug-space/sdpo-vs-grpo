@@ -52,7 +52,12 @@ actor_rollout_ref.ref.fsdp_config.param_offload=True \
 actor_rollout_ref.actor.use_dynamic_bsz=True \
 actor_rollout_ref.model.path=$MODEL_PATH \
 actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
-actor_rollout_ref.rollout.gpu_memory_utilization=0.30 \
+actor_rollout_ref.rollout.gpu_memory_utilization=0.20 \
+actor_rollout_ref.rollout.enforce_eager=True \
+actor_rollout_ref.rollout.free_cache_engine=True \
+actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1 \
+actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=1 \
+trainer.val_before_train=False \
 algorithm.rollout_correction.rollout_is=token \
 actor_rollout_ref.rollout.val_kwargs.n=16"
 
