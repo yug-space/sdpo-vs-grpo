@@ -34,7 +34,7 @@ DISTILL_TOPK=100
 EXP_NAME="SDPO-qwen3-4b-mind2web-alpha${ALPHA}-seed${SEED}"
 
 # Memory tricks for single H200 141GB full-FT of 9B + EMA teacher
-MAX_STEPS="${MAX_STEPS:-100}"
+MAX_STEPS="${MAX_STEPS:-30}"
 
 SDPO_DIR="${SDPO_DIR:-$ROOT/upstream}"
 

@@ -31,7 +31,7 @@ EXP_NAME="GRPO-qwen3-4b-mind2web-seed${SEED}"
 # Memory tricks for single H200 141GB full-FT of 9B:
 # - param_offload + optimizer_offload: AdamW fp32 states live in CPU RAM
 # - dynamic_bsz: verl auto-tunes micro-batch from a token budget
-MAX_STEPS="${MAX_STEPS:-100}"
+MAX_STEPS="${MAX_STEPS:-30}"
 
 SDPO_DIR="${SDPO_DIR:-$ROOT/upstream}"
 
