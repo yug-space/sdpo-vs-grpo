@@ -46,8 +46,7 @@ actor_rollout_ref.actor.self_distillation.dont_reprompt_on_self_success=${DONTS_
 actor_rollout_ref.actor.self_distillation.alpha=$ALPHA \
 algorithm.rollout_correction.rollout_is=token \
 actor_rollout_ref.actor.optim.lr_warmup_steps=10 \
-actor_rollout_ref.rollout.val_kwargs.n=16 \
-trainer.seed=$SEED"
+actor_rollout_ref.rollout.val_kwargs.n=16"
 
 echo "----------------------------------------------------------------"
 echo "[SDPO] $EXP_NAME"

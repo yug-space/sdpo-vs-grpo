@@ -40,8 +40,7 @@ actor_rollout_ref.actor.fsdp_config.optimizer_offload=True \
 actor_rollout_ref.actor.use_dynamic_bsz=True \
 actor_rollout_ref.model.path=$MODEL_PATH \
 algorithm.rollout_correction.rollout_is=token \
-actor_rollout_ref.rollout.val_kwargs.n=16 \
-trainer.seed=$SEED"
+actor_rollout_ref.rollout.val_kwargs.n=16"
 
 echo "----------------------------------------------------------------"
 echo "[GRPO] $EXP_NAME"
