@@ -56,8 +56,9 @@ $PIP install flash-attn --no-build-isolation || echo "[warn] flash-attn install 
 $PIP install word2number "latex2sympy2" "math-verify[antlr4_9_3]==0.8.0"
 $PIP install --upgrade wandb
 
-# vLLM (Hopper supports any modern release)
-$PIP install "vllm==0.8.4"
+# vLLM — verl 0.7+ imports vllm.v1.engine.utils.CoreEngineProcManager
+# which only exists in vllm>=0.12.0. INSTALL.md recommends 0.12+ for newer h/w.
+$PIP install "vllm==0.12.0"
 
 # ---- 2b. fix dependency conflicts that break Ray on this image ----
 # The base image ships opentelemetry-exporter-prometheus 0.62b1 which imports
