@@ -38,6 +38,7 @@ SDPO_DIR="${SDPO_DIR:-$ROOT/upstream}"
 ARGS="data.train_batch_size=$TRAIN_BATCH_SIZE \
 vars.dir=$SDPO_DIR \
 custom_reward_function.path=$SDPO_DIR/verl/utils/reward_score/feedback/__init__.py \
+trainer.logger=[console] \
 trainer.n_gpus_per_node=$N_GPUS_PER_NODE \
 trainer.group_name=SDPOvsGRPO \
 trainer.experiment_name=$EXP_NAME \
