@@ -56,8 +56,10 @@ $PIP uninstall -y opentelemetry-exporter-prometheus 2>&1 | tail -2 || true
 # Verl needs numpy<2.0; some deps drag 2.x in. Pin back.
 $PIP install "numpy<2.0.0" 2>&1 | tail -3
 
-# Qwen3.5 has model_type="qwen3_5" — needs recent transformers (>=4.46) to recognize.
-$PIP install --upgrade "transformers>=4.46.0" 2>&1 | tail -3
+# Qwen3.5 has model_type="qwen3_5" — needs transformers>=4.57.0 to recognize.
+# But transformers>=5.0 removed AutoModelForVision2Seq which verl imports.
+# Pin to last 4.x release that satisfies both.
+$PIP install "transformers==4.57.6" 2>&1 | tail -3
 
 # ---- 3. wandb auth ----
 if [[ -n "$WANDB_API_KEY" ]]; then
