@@ -10,6 +10,8 @@ cd "$ROOT/upstream"
 export PYTHONPATH="$ROOT/upstream:${PYTHONPATH:-}"
 export USER="${USER:-$(whoami)}"
 export N_GPUS_PER_NODE=1
+# Reduce CUDA memory fragmentation when training near GPU capacity
+export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
 
 CONFIG_NAME="sdpo"
 DATA_PATH="datasets/mind2web"
@@ -49,8 +51,10 @@ actor_rollout_ref.actor.optim.lr=$LR \
 actor_rollout_ref.actor.ppo_mini_batch_size=32 \
 actor_rollout_ref.actor.fsdp_config.param_offload=True \
 actor_rollout_ref.actor.fsdp_config.optimizer_offload=True \
+actor_rollout_ref.ref.fsdp_config.param_offload=True \
 actor_rollout_ref.actor.use_dynamic_bsz=True \
 actor_rollout_ref.rollout.tensor_model_parallel_size=1 \
+actor_rollout_ref.rollout.gpu_memory_utilization=0.30 \
 actor_rollout_ref.actor.self_distillation.distillation_topk=$DISTILL_TOPK \
 actor_rollout_ref.actor.self_distillation.dont_reprompt_on_self_success=${DONTS_REPROMPT_ON_SELF_SUCCESS} \
 actor_rollout_ref.actor.self_distillation.alpha=$ALPHA \
