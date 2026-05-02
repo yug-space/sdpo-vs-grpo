@@ -9,11 +9,17 @@ WANDB_API_KEY="${WANDB_API_KEY:-}"
 HF_TOKEN="${HF_TOKEN:-}"
 
 # ---- 0. python/pip resolution ----
-# Datacrunch/runpod images often ship python3 only — alias for our tooling.
+# Datacrunch/runpod images often ship python3 only and/or no pip — fix both.
 if ! command -v python >/dev/null 2>&1; then
   ln -sf "$(command -v python3)" /usr/local/bin/python
 fi
-python3 -m ensurepip --upgrade 2>/dev/null || true
+if ! python3 -m pip --version >/dev/null 2>&1; then
+  echo "[setup] installing pip via apt..."
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update -y >/dev/null 2>&1
+  apt-get install -y python3-pip python3-venv git curl >/dev/null 2>&1 || \
+    python3 -m ensurepip --upgrade
+fi
 PIP="python3 -m pip"
 $PIP --version
 
