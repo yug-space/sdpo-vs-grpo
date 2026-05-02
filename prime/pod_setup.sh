@@ -46,6 +46,16 @@ $PIP install --upgrade wandb
 # vLLM (Hopper supports any modern release)
 $PIP install "vllm==0.8.4"
 
+# ---- 2b. fix dependency conflicts that break Ray on this image ----
+# The base image ships opentelemetry-exporter-prometheus 0.62b1 which imports
+# OtelComponentTypeValues (only in semconv >= 0.50b0). Verl pins semconv=0.47b0
+# transitively via Ray, so the prometheus exporter import fails -> Ray
+# dashboard dies -> Raylet socket closes -> training worker fails to register.
+# Ray's prometheus metrics export is optional; remove the offender.
+$PIP uninstall -y opentelemetry-exporter-prometheus 2>&1 | tail -2 || true
+# Verl needs numpy<2.0; some deps drag 2.x in. Pin back.
+$PIP install "numpy<2.0.0" 2>&1 | tail -3
+
 # ---- 3. wandb auth ----
 if [[ -n "$WANDB_API_KEY" ]]; then
   wandb login "$WANDB_API_KEY"
