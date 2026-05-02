@@ -30,7 +30,20 @@ fi
 cd "$WORKDIR"
 git submodule update --init --recursive
 
-# ---- 2. install ----
+# ---- 2. install (skip if last successful state still works) ----
+if python3 -c "
+import torch, verl, transformers, vllm, ray
+from transformers import AutoModelForVision2Seq
+print('torch', torch.__version__, 'transformers', transformers.__version__, 'vllm', vllm.__version__)
+" 2>/dev/null; then
+  echo "[setup] deps already installed and importable, skipping pip install steps"
+  cd upstream
+  SKIP_INSTALL=1
+else
+  SKIP_INSTALL=0
+fi
+
+if [[ "$SKIP_INSTALL" != "1" ]]; then
 # H200 (Hopper, sm_90) — torch 2.5+cu124 is well tested with verl/lasgroup-SDPO.
 # (The Blackwell cu128 path was for B200; H200 uses Hopper toolchain.)
 $PIP install --upgrade pip
@@ -60,6 +73,7 @@ $PIP install "numpy<2.0.0" 2>&1 | tail -3
 # But transformers>=5.0 removed AutoModelForVision2Seq which verl imports.
 # Pin to last 4.x release that satisfies both.
 $PIP install "transformers==4.57.6" 2>&1 | tail -3
+fi  # end SKIP_INSTALL guard
 
 # ---- 3. wandb auth ----
 if [[ -n "$WANDB_API_KEY" ]]; then
