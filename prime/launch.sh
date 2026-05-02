@@ -10,7 +10,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 # ---- config ----
-GPU_ID="${GPU_ID:-b66259}"            # 1× B200 180GB datacrunch FI ($1.71/hr)
+GPU_ID="${GPU_ID:-468e80}"            # 1× H200 141GB datacrunch FI ($1.187/hr)
 POD_NAME="${POD_NAME:-sdpo-vs-grpo-$(date +%s)}"
 DISK_GB="${DISK_GB:-200}"
 SECRETS_FILE="${SECRETS_FILE:-$ROOT/secrets.env}"
@@ -58,18 +58,36 @@ for i in {1..60}; do
   sleep 15
 done
 
-# ---- ship setup script + secrets, run training ----
-echo "[launch] running pod_setup.sh remotely..."
+# ---- ship setup script + secrets, kick off DETACHED so we can monitor ----
+echo "[launch] uploading secrets + setup script..."
 prime pods ssh "$POD_ID" -- "mkdir -p /workspace && cat > /workspace/secrets.env" < "$SECRETS_FILE"
-prime pods ssh "$POD_ID" -- "set -a; source /workspace/secrets.env; set +a; bash -s" < "$ROOT/prime/pod_setup.sh"
+prime pods ssh "$POD_ID" -- "cat > /workspace/pod_setup.sh" < "$ROOT/prime/pod_setup.sh"
+prime pods ssh "$POD_ID" -- "chmod +x /workspace/pod_setup.sh"
 
-# ---- sync results back ----
-echo "[launch] syncing results back to $ROOT/results/"
-mkdir -p "$ROOT/results"
-prime pods ssh "$POD_ID" -- "tar czf - -C /workspace/sdpo-vs-grpo/results ." | tar xzf - -C "$ROOT/results"
+echo "[launch] starting pod_setup.sh detached on pod (logs -> /workspace/setup.log)..."
+prime pods ssh "$POD_ID" -- "set -a; source /workspace/secrets.env; set +a; \
+  nohup bash /workspace/pod_setup.sh > /workspace/setup.log 2>&1 < /dev/null & \
+  echo \$! > /workspace/setup.pid; \
+  echo 'detached pid: '\$(cat /workspace/setup.pid)"
 
-# ---- teardown ----
-echo "[launch] terminating pod $POD_ID"
-prime pods terminate "$POD_ID" -y
+cat <<EOF
 
-echo "[launch] done. results in $ROOT/results/"
+[launch] -----------------------------------------------------------------
+[launch]  pod is running pod_setup.sh in the background.
+[launch]
+[launch]  pod id:    $POD_ID
+[launch]  cost rate: \$1.187/hr (1× H200 141GB)
+[launch]
+[launch]  watch logs:
+[launch]    prime pods ssh $POD_ID -- 'tail -f /workspace/setup.log'
+[launch]
+[launch]  sync results:
+[launch]    prime pods ssh $POD_ID -- 'tar czf - -C /workspace/sdpo-vs-grpo/results .' | \\
+[launch]      tar xzf - -C $ROOT/results
+[launch]
+[launch]  terminate when done:
+[launch]    prime pods terminate $POD_ID -y
+[launch] -----------------------------------------------------------------
+EOF
+
+echo "$POD_ID" > "$ROOT/.last_pod_id"

@@ -22,13 +22,22 @@ LR=1e-5
 
 EXP_NAME="GRPO-q35-9b-mind2web-seed${SEED}"
 
+# Memory tricks for single H200 141GB full-FT of 9B:
+# - param_offload + optimizer_offload: AdamW fp32 states live in CPU RAM
+# - dynamic_bsz: verl auto-tunes micro-batch from a token budget
+MAX_STEPS="${MAX_STEPS:-100}"
+
 ARGS="data.train_batch_size=$TRAIN_BATCH_SIZE \
 trainer.group_name=SDPOvsGRPO \
 trainer.experiment_name=$EXP_NAME \
+trainer.total_training_steps=$MAX_STEPS \
 actor_rollout_ref.actor.optim.lr_warmup_steps=10 \
 actor_rollout_ref.rollout.n=$ROLLOUT_BATCH_SIZE \
 actor_rollout_ref.actor.optim.lr=$LR \
 actor_rollout_ref.actor.ppo_mini_batch_size=$MINI_BATCH_SIZE \
+actor_rollout_ref.actor.fsdp_config.param_offload=True \
+actor_rollout_ref.actor.fsdp_config.optimizer_offload=True \
+actor_rollout_ref.actor.use_dynamic_bsz=True \
 actor_rollout_ref.model.path=$MODEL_PATH \
 algorithm.rollout_correction.rollout_is=token \
 actor_rollout_ref.rollout.val_kwargs.n=16 \

@@ -28,11 +28,14 @@ Prime Intellect B200 180GB pod.
 
 | Stage | GPU | Hourly | Est. wall-clock |
 |---|---|---|---|
-| GRPO run | 1× B200 180GB (datacrunch FI) | $1.71 | ~3 hr |
-| SDPO run | 1× B200 180GB (datacrunch FI) | $1.71 | ~3 hr |
-| **Total** | | | **~$10–12 / 6 hr** |
+| GRPO run | 1× H200 141GB (datacrunch FI, id `468e80`) | $1.187 | ~3 hr |
+| SDPO run | 1× H200 141GB (datacrunch FI, id `468e80`) | $1.187 | ~3 hr |
+| **Total** | | | **~$8–10 / 6–8 hr** |
 
-Memory is tight at 9B full-FT. Falls back to 2× B200 ($3.42/hr) if first run OOMs.
+GPU memory at 141GB is tight for 9B full-FT, so configs enable
+`fsdp_config.optimizer_offload=True` (AdamW states in CPU RAM, ~72 GB
+saved on GPU) and `use_dynamic_bsz=True`. Falls back to 8× A100
+($5.52/hr, 640GB total) if it OOMs even with offload.
 
 ## Hyperparameters (paper defaults, single-GPU)
 
